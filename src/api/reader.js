@@ -7,3 +7,12 @@ export const readerListService = (params) => {
 export const readerAddService = (readerData) => {
     return request.post('/reader/add', readerData);
 }
+
+export const readerDeleteService = (readerId) => {
+    return request.delete('/reader/delete', {params:{readerId}});
+
+}
+
+export const readerUpdateService = (readerData) => {
+    return request.put('/reader/update', readerData);
+}

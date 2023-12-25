@@ -13,9 +13,10 @@ const readers = ref([
         "email": "2662222222@qq.com"
     }
 ])
-import { readerListService, readerAddService } from '@/api/reader.js'
+import { readerListService, readerAddService, readerDeleteService, readerUpdateService } from '@/api/reader.js'
 
 const visibleDrawer = ref(false);
+const dialogVisible = ref(false);
 
 //分页条数据模型
 const pageNum = ref(1)//当前页
@@ -52,6 +53,7 @@ const readerList = async () => {
 readerList();
 
 const readerModel = ref({
+    readerId: '',
     name: '',
     phone: '',
     email: ''
@@ -80,7 +82,7 @@ const readerModelClear = () => {
     readerModel.value.email = '';
 }
 
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 const addReader = async () => {
 
     let result = await readerAddService(readerModel.value);
@@ -94,6 +96,45 @@ const addReader = async () => {
     readerList();
 }
 
+const deleteReader = async(readerId) => {
+
+    ElMessageBox.confirm(
+    '核销该预约吗?',
+    '🔔温馨提示🔔',
+    {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(async() => {
+        let reult = await readerDeleteService(readerId);
+      ElMessage({
+        type: 'success',
+        message: '删除成功',
+      })
+      readerList();
+    })
+    .catch(() => {
+      ElMessage({
+        type: 'info',
+        message: '删除取消',
+      })
+    })
+
+}
+
+const updateReader = async() => {
+    let result = await readerUpdateService(readerModel.value);
+
+    ElMessage.success(result.message ? result.message : '添加成功');
+
+    dialogVisible.value = false;
+
+    readerModelClear();
+
+    readerList();
+}
 </script>
 
 <template>
@@ -128,8 +169,8 @@ const addReader = async () => {
             <el-table-column label="邮箱" prop="email"></el-table-column>
             <el-table-column label="操作" width="100">
                 <template #default="{ row }">
-                    <el-button :icon="Document" circle plain type="info"></el-button>
-                    <el-button :icon="Delete" circle plain type="danger"></el-button>
+                    <el-button :icon="Document" circle plain type="info" @click="readerModel.name = row.name;readerModel.phone = row.phone;readerModel.email = row.email;readerModel.readerId = row.readerId;dialogVisible = true;"></el-button>
+                    <el-button :icon="Delete" circle plain type="danger" @click="deleteReader(row.readerId)"></el-button>
                 </template>
             </el-table-column>
             <template #empty>
@@ -162,6 +203,26 @@ const addReader = async () => {
                 </el-form-item>
             </el-form>
         </el-drawer>
+
+        <el-dialog v-model="dialogVisible" :title="title" width="30%">
+            <el-form :model="readerModel" label-width="100px" :rules="rules">
+                <el-form-item label="姓名">
+                    <el-input v-model="readerModel.name" disabled="true"></el-input>
+                </el-form-item>
+                <el-form-item label="电话号码" prop="phone">
+                    <el-input v-model="readerModel.phone" placeholder="请输入电话号码" ></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱" prop="email">
+                    <el-input v-model="readerModel.email" placeholder="请输入邮箱"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="dialogVisible = false; readerModelClear()">取消</el-button>
+                    <el-button type="primary" @click="updateReader"> 确认 </el-button>
+                </span>
+            </template>
+        </el-dialog>
     </el-card>
 
 </template>
