@@ -17,6 +17,7 @@ import { readerListService, readerAddService, readerDeleteService, readerUpdateS
 
 const visibleDrawer = ref(false);
 const dialogVisible = ref(false);
+const loading = ref(false)
 
 //分页条数据模型
 const pageNum = ref(1)//当前页

@@ -16,3 +16,16 @@ export const readerDeleteService = (readerId) => {
 export const readerUpdateService = (readerData) => {
     return request.put('/reader/update', readerData);
 }
+
+export const readerLoginService = (loginData) => {
+    const params = new URLSearchParams();
+    for (let key in loginData) {
+        params.append(key, loginData[key]);
+    }
+
+    return request.post('/reader/login', params);
+}
+
+export const readerInfoService = () => {
+    return request.get('/reader/readerInfo');
+}

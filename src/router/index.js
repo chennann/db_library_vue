@@ -13,6 +13,12 @@ import ReservationVue from '@/views/Reservation.vue';
 import ReturnVue from '@/views/Return.vue';
 import LibrarianVue from '@/views/Librarian.vue';
 
+import LayoutVue02 from '@/views/Layout02.vue';
+import ReaderBorrowVue from '@/views/readerViews/ReaderBorrow.vue';
+import ReaderBookVue from '@/views/readerViews/ReaderBooks.vue';
+import ReaderReservationVue from '@/views/readerViews/ReaderReservation.vue';
+import ReaderInfoVue from '@/views/readerViews/ReaderInfo.vue';
+
 const routes = [
 
     {path:'/login', component:LoginVue},
@@ -30,7 +36,19 @@ const routes = [
             {path: '/user/resetPassword', component: BorrowVue}
             
         ]
+    },
+    {
+        path:'/page_reader', 
+        component:LayoutVue02,
+        redirect: '/reader_book',
+        children: [
+            {path: '/reader_book', component: ReaderBookVue},
+            {path: '/reader_borrows', component: ReaderBorrowVue},
+            {path: '/reader_reservation', component: ReaderReservationVue},
+            {path: '/reader_info', component: ReaderInfoVue}
+        ]
     }
+
 ]
 
 

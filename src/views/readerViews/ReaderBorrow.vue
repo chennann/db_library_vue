@@ -20,20 +20,10 @@ const borrows = ref([
     }
 ])
 
-
-
-const readers = ref([
-    {
-        "readerId": 5,
-        "name": "RRR",
-        "phone": "15921035666",
-        "email": "2662222222@qq.com"
-    }
-])
-import { readerListService } from '@/api/reader.js'
 import { borrowListService, returnBookService } from '@/api/borrow.js'
-
+import useUserInfoStore from '@/stores/userInfo.js';
 const loading = ref(false)
+const userInfoStore = useUserInfoStore();
 
 //分页条数据模型
 const pageNum = ref(1)//当前页
@@ -50,27 +40,15 @@ const onCurrentChange = (num) => {
     borrowList();
 }
 
-
-const readerList = async () => {
-    let params = {
-        pageNum: pageNum.value,
-        pageSize: pageSize.value,
-    }
-
-    let result = await readerListService(params);
-
-    total.value = result.data.total;
-    readers.value = result.data.items;
-}
-readerList();
 const rId = ref('');
-const state = ref('1');
+const state = ref('2');
+
 
 const borrowList = async () => {
     let params = {
         pageNum: pageNum.value,
         pageSize: pageSize.value,
-        readerId: rId.value ? rId.value : null,
+        readerId: userInfoStore.info.readerId ? userInfoStore.info.readerId : null,
         status: state.value ? state.value : null
     }
 
@@ -83,11 +61,7 @@ const borrowList = async () => {
     for (let i = 0; i < borrows.value.length; i++) {
         let borrow = borrows.value[i];
         if (borrow.returnTime == null) borrow.returnTime = '/'
-        for (let j = 0; j < readers.value.length; j++) {
-            if (borrow.readerId == readers.value[j].readerId) {
-                borrow.readerName = readers.value[j].name;
-            }
-        }
+        borrow.readerName = userInfoStore.info.name
     }
 }
 borrowList();
@@ -97,49 +71,12 @@ const qqq = () => {
     console.log("asdasd");
 }
 
-const returnBook = async (borrowingId, bookId) => {
-
-    ElMessageBox.confirm(
-    '确定要消除该借阅记录吗?',
-    '🔔温馨提示🔔',
-    {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
-    .then(async() => {
-        const params = {
-            borrowingId: borrowingId,
-            bookId: bookId
-        }
-
-            let result = await returnBookService(params);
-            ElMessage({
-        type: 'success',
-        message: '还书成功',
-      })
-      borrowList();
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: '取消还书',
-      })
-    })
-
-
-    
-}
 </script>
 
 <template>
     <el-card class="page-container">
         <!-- 搜索表单 -->
         <el-form inline>
-            <el-form-item label="读者Id：">
-                <el-input name="rId" placeholder="请输入readerId" v-model="rId"></el-input>
-            </el-form-item>
 
             <el-form-item label="借阅状态：">
                 <el-select placeholder="请选择" v-model="state">
@@ -162,7 +99,6 @@ const returnBook = async (borrowingId, bookId) => {
             <el-table-column label="操作" width="100">
                 <template #default="{ row }">
                     <el-button :icon="Document" circle plain type="info"  @click="qqq"></el-button>
-                    <el-button :icon="Select" circle plain type="success" @click="returnBook(row.borrowingId, row.bookId)"></el-button>
                 </template>
             </el-table-column>
             <template #empty>

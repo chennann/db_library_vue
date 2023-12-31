@@ -6,10 +6,8 @@ import {
 } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus';
-import { bookListService, bookCopiesListService, bookCopyAllocateService, bookAddService, bookAddPrecheckService } from '@/api/book.js';
-import { useTokenStore } from '@/stores/token.js';
+import { bookListService, bookCopiesListService, bookCopyAllocateService, bookAddService } from '@/api/book.js';
 
-const tokenStore = useTokenStore();
 const books = ref([
     {
         "isbn": "ISBN7-301-02368-9",
@@ -21,11 +19,6 @@ const books = ref([
         "librarianNumber": "21120992"
     }
 ])
-
-const precheck = ref(true)
-const newBook = ref(false)
-const oldBook = ref(false)
-const step = ref(1)
 
 //分页条数据模型
 const pageNum = ref(1)//当前页
@@ -83,9 +76,6 @@ const bookCopies = ref([
 ])
 
 const bookCopiesList = async(title) => {
-
-    console.log(title);
-
     CopyLoading.value = true;
     let params = {
         pageNum: 1,
@@ -95,7 +85,6 @@ const bookCopiesList = async(title) => {
 
     let result = await bookCopiesListService(params);
 
-    // total.value = result.data.total;
     bookCopies.value = result.data.items;
 
     CopyLoading.value = false;
@@ -118,8 +107,7 @@ const bookCopiesModel = ref({
     publisher: '',
     publishdate: '',
     copies: 1,
-    librarianNumber: '21120992',
-    bookCover: ''
+    librarianNumber: '21120992'
 })
 
 const bookCopiesModelClear = () => {
@@ -127,9 +115,8 @@ const bookCopiesModelClear = () => {
     bookCopiesModel.value.isbn = '';
     bookCopiesModel.value.author = '';
     bookCopiesModel.value.publisher = '';
-    date.value = '';
+    bookCopiesModel.value.publishdate = '';
     bookCopiesModel.value.copies = '';
-    bookCopiesModel.value.bookCover = '';
 }
 
 const qqq = () => {
@@ -152,10 +139,10 @@ const allocate = async(bookId, location) => {
     ElMessage.success(result.message ? result.message : '移动成功');
 }
 
-const addBook = async ()=> {
+const addBook = ()=> {
     bookCopiesModel.value.publishdate = formatDateTime(date.value);
     console.log('qqqqqq');
-    let result = await bookAddService(bookCopiesModel.value);
+    let result = bookAddService(bookCopiesModel.value);
 
     visibleDrawer.value = false;
 
@@ -166,30 +153,6 @@ const addBook = async ()=> {
     bookList();
 }
 
-const addPrecheck = async () => {
-    let result = await bookAddPrecheckService(bookCopiesModel.value);
-
-    if (result.data === "没有图书") {
-        precheck.value = false;
-        newBook.value = true;
-    }
-    else {
-        
-        bookCopiesModel.value.author = result.data.author;
-        bookCopiesModel.value.title = result.data.title;
-        bookCopiesModel.value.publisher = result.data.publisher;
-        date.value = new Date(result.data.publishdate);
-        bookCopiesModel.value.bookCover = result.data.bookCover;
-        precheck.value = false;
-        oldBook.value = true;
-    }
-    step.value = step.value + 1;
-}
-
-const uploadSuccess = (result) => {
-    bookCopiesModel.value.bookCover = result.data;
-    console.log(result.data);
-}
 </script>
 
 <template>
@@ -197,9 +160,6 @@ const uploadSuccess = (result) => {
         <template #header>
             <div class="header">
                 <span>图书管理</span>
-                <div class="extra">
-                    <el-button type="primary" @click="visibleDrawer = true, step = 1">入库</el-button>
-                </div>
             </div>
         </template>
         <!-- 搜索表单 -->
@@ -236,17 +196,11 @@ const uploadSuccess = (result) => {
                         <el-table v-loading="CopyLoading" :data="bookCopies">
                             <el-table-column width="100" property="bookId" label="bookId" />
                             <el-table-column width="100" property="status" label="status" />
-                            <el-table-column width="150" label="location" header-align="center">
-                                <template #default="{ row }">
-                                    <el-select placeholder="请选择" v-model="row.location"  @change="allocate(row.bookId, row.location)">
-                                        <el-option label="图书流通室" value="图书流通室" ></el-option>
-                                        <el-option label="图书阅览室" value="图书阅览室" ></el-option>
-                                    </el-select>
-                                </template>
+                            <el-table-column width="150" property="location" label="location" header-align="center">
+                                
                             </el-table-column>
                         </el-table>
                     </el-popover>
-                    <!-- <el-button :icon="Delete" circle plain type="danger"></el-button> -->
                 </template>
             </el-table-column>
             <template #empty>
@@ -259,75 +213,13 @@ const uploadSuccess = (result) => {
             @current-change="onCurrentChange" style="margin-top: 20px; justify-content: flex-end" />
         <!-- 抽屉 -->
         <el-drawer v-model="visibleDrawer" title="入库管理" direction="rtl" size="50%">
-            <div style="height: 130px">
-                <el-steps :active="step">
-                <el-step title="Step 1" />
-                <el-step title="Step 2" />
-                <el-step title="Step 3" />
-                </el-steps>
-            </div>
-            <!-- <el-button type="primary" @click="step = step+1">+1</el-button>
-            <el-button type="primary" @click="step = step-1">-1</el-button> -->
-                        <!-- 添加文章表单 -->
-            <el-form :model="bookCopiesModel" v-if="precheck">
-                <el-form-item label="isbn">
-                    <el-input v-model="bookCopiesModel.isbn" placeholder="请输入isbn"></el-input>
-                </el-form-item>
-                <el-button type="primary" @click="addPrecheck">precheck</el-button>
-
-            </el-form>
-
-            <el-form :model="bookCopiesModel" v-if="oldBook">
-                <el-form-item label="书名">
-                    <el-input v-model="bookCopiesModel.title" placeholder="请输入书名" disabled="true"></el-input>
-                </el-form-item>
-                <el-form-item label="isbn">
-                    <el-input v-model="bookCopiesModel.isbn" placeholder="请输入isbn" disabled="true"></el-input>
-                </el-form-item>
-                <el-form-item label="作者">
-                    <el-input v-model="bookCopiesModel.author" placeholder="请输入作者" disabled="true"></el-input>
-                </el-form-item>
-                <el-form-item label="出版商">
-                    <el-input v-model="bookCopiesModel.publisher" placeholder="请输入出版商" disabled="true"></el-input>
-                </el-form-item>
-                <el-form-item>
-                    <el-upload 
-                        ref="uploadRef"
-                        class="avatar-uploader" 
-                        :show-file-list="false"
-                        :auto-upload="true"
-                        action="https://47.115.229.197:8443/upload"
-                        name="file"
-                        :headers="{Authorization: tokenStore.token}"
-                        :on-success="uploadSuccess"
-                        disabled="true"
-                        >
-                        <img v-if="bookCopiesModel.bookCover" :src="bookCopiesModel.bookCover" class="avatar" />
-                        <img v-else src="@/assets/default.png" width="278" />
-                    </el-upload>
-                </el-form-item>
-                <el-form-item label="出版时间">
-                    <el-date-picker
-                        v-model="date"
-                        type="date"
-                        placeholder="Pick a day"
-                        disabled="true"
-                    />
-                </el-form-item>
-                <el-form-item label="数量">
-                    <el-input-number v-model="bookCopiesModel.copies" :min="1" :max="10" @change="qqq" />
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="primary" @click="addBook()">确定</el-button>
-                    <el-button type="info" @click="bookCopiesModelClear(); visibleDrawer = false; precheck = true; oldBook = false; newBook = false;">取消</el-button>
-                </el-form-item>
-            </el-form>
-            <el-form :model="bookCopiesModel" v-if="newBook" label-width="100px" :rules="rules">
+            <!-- 添加文章表单 -->
+            <el-form :model="bookCopiesModel" label-width="100px" :rules="rules">
                 <el-form-item label="书名">
                     <el-input v-model="bookCopiesModel.title" placeholder="请输入书名"></el-input>
                 </el-form-item>
                 <el-form-item label="isbn">
-                    <el-input v-model="bookCopiesModel.isbn" placeholder="请输入isbn" disabled="true"></el-input>
+                    <el-input v-model="bookCopiesModel.isbn" placeholder="请输入isbn"></el-input>
                 </el-form-item>
                 <el-form-item label="作者">
                     <el-input v-model="bookCopiesModel.author" placeholder="请输入作者"></el-input>
@@ -335,21 +227,6 @@ const uploadSuccess = (result) => {
                 <el-form-item label="出版商">
                     <el-input v-model="bookCopiesModel.publisher" placeholder="请输入出版商"></el-input>
                 </el-form-item>
-                <el-form-item>
-                    <el-upload 
-                        ref="uploadRef"
-                        class="avatar-uploader" 
-                        :show-file-list="false"
-                        :auto-upload="true"
-                        action="https://47.115.229.197:8443/upload"
-                        name="file"
-                        :headers="{Authorization: tokenStore.token}"
-                        :on-success="uploadSuccess"
-                        >
-                        <img v-if="bookCopiesModel.bookCover" :src="bookCopiesModel.bookCover" class="avatar" />
-                        <img v-else src="@/assets/default.png" width="278" />
-                    </el-upload>
-                </el-form-item>
                 <el-form-item label="出版时间">
                     <el-date-picker
                         v-model="date"
@@ -362,10 +239,9 @@ const uploadSuccess = (result) => {
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="addBook()">确定</el-button>
-                    <el-button type="info" @click="bookCopiesModelClear(); visibleDrawer = false; precheck = true; oldBook = false; newBook = false;">取消</el-button>
+                    <el-button type="info" @click="bookCopiesModelClear(); visibleDrawer = false">取消</el-button>
                 </el-form-item>
             </el-form>
-
         </el-drawer>
     </el-card>
 

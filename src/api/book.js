@@ -15,3 +15,7 @@ export const bookCopyAllocateService = (params) => {
 export const bookAddService = (params) => {
     return request.post('/book/add', params);
 }
+
+export const bookAddPrecheckService = (params) => {
+    return request.post('/book/add/precheck', params);
+}

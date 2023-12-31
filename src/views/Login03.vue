@@ -3,11 +3,16 @@ import { User, Lock, Wallet } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 //控制注册与登录表单的显示， 默认显示注册
-const isRegister = ref(false)
+const isRegister = ref(true)
 
 const registerData = ref({
     librarianNumber: '',
     name: ''
+})
+
+const readerData = ref({
+    readerId: '',
+    password: ''
 })
 
 const checkRePassword = (rule, value, callback) => {
@@ -34,10 +39,28 @@ const rules = {
 }
 
 import { librarianAddService, librarianLoginService } from '@/api/librarian.js';
+import { readerLoginService} from '@/api/reader.js';
 const register = async () => {
     let result = await librarianAddService(registerData.value);
 
     ElMessage.success(result.message ? result.message : '注册成功。。。。。。');
+}
+
+const readerLogin = async() => {
+
+    let params = {
+        readerId: readerData.value.readerId,
+        password: readerData.value.password
+    }
+
+
+    let result = await readerLoginService(params);
+
+    ElMessage.success(result.message ? result.message : '登陆成功。。。。。。');
+
+    tokenStore.setToken(result.data);
+
+    router.push('/page_reader');
 }
 
 import { useTokenStore } from '@/stores/token.js';
@@ -79,34 +102,40 @@ const clearRegisterData = () => {
         </el-col>
         <el-col :span="6" :offset="3" class="form">
             <!-- 注册表单 -->
-            <el-form ref="form" size="large" autocomplete="off" v-if="isRegister" :model="registerData" :rules="rules">
+            <el-form ref="form" size="large" autocomplete="off" v-if="isRegister" :model="readerData" :rules="rules">
                 <el-form-item>
-                    <h1>新增管理员</h1>
+                    <h1>读者登陆</h1>
                 </el-form-item>
-                <el-form-item prop="librarianNumber">
-                    <el-input :prefix-icon="User" placeholder="请输入管理员ID" v-model="registerData.librarianNumber"></el-input>
+                <el-form-item prop="readerId">
+                    <el-input :prefix-icon="User" placeholder="请输入读者ID" v-model="readerData.readerId"></el-input>
                 </el-form-item>
-                <el-form-item prop="name">
-                    <el-input :prefix-icon="Wallet" type="plain" placeholder="请输入姓名"
-                        v-model="registerData.name" ></el-input>
+                <el-form-item prop="password">
+                    <el-input :prefix-icon="Wallet" type="password" placeholder="请输入密码"
+                        v-model="readerData.password" ></el-input>
                         
                 </el-form-item>
                 <!-- 注册按钮 -->
                 <el-form-item>
-                    <el-button class="button" type="primary" auto-insert-space @click="register">
-                        注册
+                    <el-button class="button" type="primary" auto-insert-space @click="readerLogin">
+                        登陆
                     </el-button>
                 </el-form-item>
                 <el-form-item class="flex">
                     <el-link type="info" :underline="false" @click="isRegister = false; clearRegisterData()">
-                        ← 返回
+                         管理员登陆 →
                     </el-link>
+                </el-form-item>
+                <el-form-item class="flex">
+                    <div class="flex">
+                        <el-checkbox>记住我</el-checkbox>
+                        <el-link type="primary" :underline="false">忘记密码？</el-link>
+                    </div>
                 </el-form-item>
             </el-form>
             <!-- 登录表单 -->
             <el-form ref="form" size="large" autocomplete="off" v-else :model="registerData" :rules="rules">
                 <el-form-item>
-                    <h1>登录</h1>
+                    <h1>管理员登陆</h1>
                 </el-form-item>
                 <el-form-item prop="librarianNumber">
                     <el-input :prefix-icon="User" placeholder="请输入管理员ID" v-model="registerData.librarianNumber"></el-input>
@@ -115,19 +144,13 @@ const clearRegisterData = () => {
                     <el-input name="name" :prefix-icon="Wallet" type="plain" placeholder="请输入姓名"
                         v-model="registerData.name"></el-input>
                 </el-form-item>
-                <el-form-item class="flex">
-                    <div class="flex">
-                        <el-checkbox>记住我</el-checkbox>
-                        <el-link type="primary" :underline="false">忘记密码？</el-link>
-                    </div>
-                </el-form-item>
                 <!-- 登录按钮 -->
                 <el-form-item>
                     <el-button class="button" type="primary" auto-insert-space @click="login">登录</el-button>
                 </el-form-item>
                 <el-form-item class="flex">
                     <el-link type="info" :underline="false" @click="isRegister = true; clearRegisterData()">
-                        注册 →
+                        ← 读者登陆 
                     </el-link>
                 </el-form-item>
             </el-form>
