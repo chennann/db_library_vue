@@ -57,7 +57,8 @@ const readerModel = ref({
     readerId: '',
     name: '',
     phone: '',
-    email: ''
+    email: '',
+    password: ''
 })
 
 const rules = {
@@ -72,7 +73,10 @@ const rules = {
     email: [
         { required: true, message: '请输入邮箱', trigger: 'blur' },
         { type:'email', required: true, message: '请输入正确邮箱格式', trigger: 'blur' }
-        
+    ],
+    password: [
+        { required: true, message: '请输入密码', trigger: 'blur' },
+        { min: 2, max: 20, message: '长度为1-16位非空字符', trigger: 'blur' }
     ]
 }
 
@@ -81,6 +85,7 @@ const readerModelClear = () => {
     readerModel.value.name = '';
     readerModel.value.phone = '';
     readerModel.value.email = '';
+    readerModel.value.password = '';
 }
 
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -197,6 +202,9 @@ const updateReader = async() => {
                 </el-form-item>
                 <el-form-item label="邮箱" prop="email">
                     <el-input v-model="readerModel.email" placeholder="请输入邮箱"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="password">
+                    <el-input v-model="readerModel.password" placeholder="请输入密码"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="addReader()">确定</el-button>
