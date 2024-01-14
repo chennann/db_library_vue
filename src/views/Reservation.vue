@@ -212,7 +212,7 @@ const reserve = async (date) => {
             layout="jumper, total, sizes, prev, pager, next" background :total="total" @size-change="onSizeChange"
             @current-change="onCurrentChange" style="margin-top: 20px; justify-content: flex-end" />
 
-        <el-drawer v-model="visibleDrawer" title="入库管理" direction="rtl" size="50%">
+        <el-drawer v-model="visibleDrawer" title="预约管理" direction="rtl" size="50%">
             <!-- 添加文章表单 -->
             <el-form :model="reservationModel" label-width="100px" :rules="rules">
                 <el-form-item label="readerId">
@@ -299,4 +299,5 @@ const reserve = async (date) => {
         min-height: 200px;
     }
 }
+
 </style>
