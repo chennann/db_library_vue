@@ -20,6 +20,7 @@ const date = ref('');
 const day = ref('');
 const hour = ref('');
 const minute = ref('');
+const title = ref('借阅');
 
 //分页条数据模型
 const pageNum = ref(1)//当前页
@@ -219,6 +220,20 @@ const borrowModelClear = () => {
                 </span>
             </template>
         </el-dialog>
+
+        <!-- <el-dialog v-model="dialogVisible" title="处理申诉" width="30%">
+            申诉理由
+            <el-row>
+                123
+            </el-row>
+            <el-row justify="center" style="margin-top: 20px;">
+                <el-image style="width: 300px; height: 300px" :src="bookId" :fit="fill" />
+            </el-row>
+            <el-row justify="center" style="margin-top: 20px;">
+                <el-button @click="dialogVisible = false" style="margin-right: 10px;">不同意</el-button>
+                <el-button type="primary" @click="agree">同意</el-button>
+            </el-row>
+        </el-dialog> -->
     </el-card>
 
 </template>
@@ -280,4 +295,12 @@ const borrowModelClear = () => {
         min-height: 200px;
     }
 }
+
+// :deep(.el-dialog__title) {
+//     font-size: x-large;
+// }
+
+// :deep(.el-dialog__body) {
+//     padding-top: 0;
+// }
 </style>
