@@ -6,12 +6,12 @@ import LayoutVue from '@/views/Layout.vue';
 // import UserAvatarVue from '@/views/user/UserAvatar.vue';
 // import UserResetPasswordVue from '@/views/user/UserResetPassword.vue';
 
-import ReaderManageVue from '@/views/ReaderManage.vue';
-import BorrowVue from '@/views/Borrow.vue';
-import BookVue from '@/views/Books.vue';
-import ReservationVue from '@/views/Reservation.vue';
-import ReturnVue from '@/views/Return.vue';
-import LibrarianVue from '@/views/Librarian.vue';
+import ReaderManageVue from '@/views/librarianViews/ReaderManage.vue';
+import BorrowVue from '@/views/librarianViews/Borrow.vue';
+import BookVue from '@/views/librarianViews/Books.vue';
+import ReservationVue from '@/views/librarianViews/Reservation.vue';
+import ReturnVue from '@/views/librarianViews/Return.vue';
+import LibrarianVue from '@/views/librarianViews/Librarian.vue';
 
 import LayoutVue02 from '@/views/Layout02.vue';
 import ReaderBorrowVue from '@/views/readerViews/ReaderBorrow.vue';

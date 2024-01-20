@@ -14,8 +14,8 @@ export const librarianLoginService = (loginData) => {
     return request.post('/librarian/login', params);
 }
 
-export const librarianInfoService = () => {
-    return request.get('/librarian/librarianInfo');
+export const librarianInfoService = (params) => {
+    return request.get('/librarian/librarianInfo',{params:params});
 }
 
 export const userInfoUpdateService = (userInfoData) => {
@@ -26,4 +26,8 @@ export const userAvatarUpdateService = (avatarUrl) => {
     const params = new URLSearchParams();
     params.append('avatarUrl', avatarUrl);
     return request.patch('user/updateAvatar', params);
+}
+
+export const librarianListService = () => {
+    return request.get('librarian/list');
 }

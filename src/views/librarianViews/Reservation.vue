@@ -193,13 +193,15 @@ const reserve = async (date) => {
         </el-form>
         <!-- 文章列表 -->
         <el-table v-loading="loading" :data="reservations" style="width: 100%">
-            <el-table-column label="序号" width="80" type="index"></el-table-column>
+            <!-- <el-table-column label="序号" width="80" type="index"></el-table-column> -->
             <el-table-column label="姓名" prop="readerName"></el-table-column>
             <el-table-column label="ISBN" prop="isbn"> </el-table-column>
             <el-table-column label="书本编号" prop="bookId"></el-table-column>
+            <el-table-column label="预约时间" prop="reservationTime"></el-table-column>
+            <el-table-column label="到期时间" prop="reservationDueTime"></el-table-column>
+
             <el-table-column label="操作" width="100">
                 <template #default="{ row }">
-                    <el-button :icon="Document" circle plain type="info"  @click=""></el-button>
                     <el-button :icon="DocumentDelete" circle plain type="danger" @click="cancelReservation(row.readerId, row.isbn, row.bookId)"></el-button>
                 </template>
             </el-table-column>
@@ -212,7 +214,7 @@ const reserve = async (date) => {
             layout="jumper, total, sizes, prev, pager, next" background :total="total" @size-change="onSizeChange"
             @current-change="onCurrentChange" style="margin-top: 20px; justify-content: flex-end" />
 
-        <el-drawer v-model="visibleDrawer" title="入库管理" direction="rtl" size="50%">
+        <el-drawer v-model="visibleDrawer" title="预约管理" direction="rtl" size="50%">
             <!-- 添加文章表单 -->
             <el-form :model="reservationModel" label-width="100px" :rules="rules">
                 <el-form-item label="readerId">

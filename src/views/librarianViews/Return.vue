@@ -127,10 +127,14 @@ const returnBook = async (borrowingId, bookId) => {
         message: '取消还书',
       })
     })
-
-
-    
 }
+
+const Fine = ref();
+const getFine = async(row) =>{
+    console.log(row.fine);
+    Fine.value = row.fine;
+}
+
 </script>
 
 <template>
@@ -158,11 +162,20 @@ const returnBook = async (borrowingId, bookId) => {
             <el-table-column label="序号" width="80" type="index"></el-table-column>
             <el-table-column label="姓名" prop="readerName"></el-table-column>
             <el-table-column label="书本编号" prop="bookId"> </el-table-column>
+            <el-table-column label="借书时间" prop="borrowTime"> </el-table-column>
             <el-table-column label="还书时间" prop="returnTime"></el-table-column>
             <el-table-column label="操作" width="100">
                 <template #default="{ row }">
-                    <el-button :icon="Document" circle plain type="info"  @click="qqq"></el-button>
-                    <el-button :icon="Select" circle plain type="success" @click="returnBook(row.borrowingId, row.bookId)"></el-button>
+                    <el-popover placement="right" :width="100" trigger="click">
+                        <template #reference>
+                            <el-button :icon="Document" circle plain type="info" @click="getFine(row)"></el-button>
+                        </template> 
+                        <el-descriptions>
+                            <el-descriptions-item label="本次罚金：" span="1">{{Fine}}元</el-descriptions-item>
+                        </el-descriptions>            
+                    </el-popover>
+                    <!-- <el-button :icon="Document" circle plain type="info"  @click="getFine(row)"></el-button> -->
+                    <el-button :icon="Select" circle plain type="success" @click="returnBook(row.borrowingId, row.bookId)" :disabled="row.returnTime !== '/'"></el-button>
                 </template>
             </el-table-column>
             <template #empty>

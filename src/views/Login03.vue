@@ -42,7 +42,6 @@ import { librarianAddService, librarianLoginService } from '@/api/librarian.js';
 import { readerLoginService} from '@/api/reader.js';
 const register = async () => {
     let result = await librarianAddService(registerData.value);
-
     ElMessage.success(result.message ? result.message : '注册成功。。。。。。');
 }
 
