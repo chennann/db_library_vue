@@ -141,6 +141,44 @@ const disabledDate = (time) => {
     return time < today || time > maxDate;
 }
 
+import { readerListService } from '@/api/reader.js'
+const readers = ref([
+    {
+        "readerId": 5,
+        "name": "RRR",
+        "phone": "15921035666",
+        "email": "2662222222@qq.com"
+    }
+])
+
+const readersName = ref([
+    {
+        "name": '',
+    }
+])
+const rId = ref('');
+const rName = ref('');
+//分页条数据模型
+const readerList = async () => {
+    let params = {
+        pageNum: 1,
+        pageSize: 100,
+        readerId: rId.value ? rId.value : null,
+        name: rName.value ? rName.value : null
+    }
+    let result = await readerListService(params);
+    readers.value = result.data.items;
+    readersName.value = [];
+    for(let i=0;i<readers.value.length;i++){
+        const newname = {name: readers.value[i].name}
+        readersName.value.push(newname);
+    }
+}
+readerList();
+
+// 魔改borrow函数
+const hashName = ref();
+
 const borrow = async (date) => {
     const now = new Date();
     const due = new Date(date);
@@ -159,6 +197,14 @@ const borrow = async (date) => {
     borrowModel.value.day = days;
     borrowModel.value.hour = hours;
     borrowModel.value.minutes = minutes;
+
+    // 处理hashName的映射逻辑
+    for(let i=0;i<readers.value.length;i++){
+        if(hashName.value == readers.value[i].name){
+            borrowModel.value.readerId = readers.value[i].readerId;
+            break;
+        }
+    }
 
     let result = await borrowService(borrowModel.value);
 
@@ -216,7 +262,38 @@ const tableRowClassName = ({ row, rowIndex }) => {
     return ""
 }
 
+const results_R = ref([]);
+const querySearch_readersName = (queryString) => {
+    results_R.value = [];
+    if(queryString){
+        for (let i = 0; i < readersName.value.length; i++) {
+        if(readersName.value[i].name.indexOf(queryString) === 0){
+            const item = {name: readersName.value[i].title}
+            results_R.value.push(item);
+        }
+    }
+    }else{
+        results_R.value = readersName.value;
+    }
+    
+    for (let i = 0; i < results_R.value.length; i++) {
+        results_R.value[i].value = results_R.value[i].name;
+    }
+    console.log("****************启用querySearch事件后的results_R****************");
+    console.log(results_R.value);
+    return results_R.value;
+}
 
+const handleSelect_readersName = (item) => {
+    console.log("****************启用handleSelect事件后的item****************");
+    console.log(item.value);
+}
+
+
+const cancelBorrow = () => {
+    dialogVisible.value = false;
+    hashName.value = '';
+}
 
 </script>
 
@@ -302,9 +379,23 @@ const tableRowClassName = ({ row, rowIndex }) => {
 
         <el-dialog v-model="dialogVisible" :title="title" width="30%">
             <el-form :model="borrowModel" label-width="100px" :rules="rules">
-                <el-form-item label="readerId">
+                <!-- <el-form-item label="readerId">
                     <el-input v-model="borrowModel.readerId" placeholder="请输入readerId"></el-input>
+                </el-form-item> -->
+
+                <!-- 自动补全输入框 -->
+                <el-form-item label="UserName：">
+                    <el-autocomplete
+                        name="UserName"
+                        v-model="hashName"
+                        :fetch-suggestions="querySearch_readersName"
+                        clearable
+                        class="inline-input w-50"
+                        placeholder="请输入读者姓名"
+                        @select="handleSelect_readersName"
+                    />
                 </el-form-item>
+
                 <el-form-item label="bookId">
                     <el-input v-model="borrowModel.bookId" placeholder="请输入bookId" disabled="true"></el-input>
                 </el-form-item>
@@ -322,7 +413,7 @@ const tableRowClassName = ({ row, rowIndex }) => {
             </el-form>
             <template #footer>
                 <span class="dialog-footer">
-                    <el-button @click="dialogVisible = false">取消</el-button>
+                    <el-button @click="cancelBorrow">取消</el-button>
                     <el-button type="primary" @click="borrow(date)"> 确认 </el-button>
                 </span>
             </template>

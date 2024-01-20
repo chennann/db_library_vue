@@ -8,6 +8,25 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus';
 import { bookListService, bookCopiesListService, bookCopyAllocateService, bookAddService } from '@/api/book.js';
 
+//创建书本书名的vue对象
+const booktitle = ref([
+    {
+        "title": "",
+    }
+])
+
+const books_for_title = ref([
+    {
+        "isbn": "ISBN7-301-02368-9",
+        "title": "111",
+        "author": "111",
+        "publisher": "chennn",
+        "publishdate": "2002-09-09 00:00:00",
+        "copies": 3,
+        "librarianNumber": "21120992"
+    }
+])
+
 const books = ref([
     {
         "isbn": "ISBN7-301-02368-9",
@@ -60,6 +79,26 @@ const bookList = async() => {
 
     total.value = result.data.total;
     books.value = result.data.items;
+
+    let titleparams = {
+        pageNum: 1,
+        pageSize: 100,
+        title: null,
+        isbn: null,
+        author: null
+    }
+    let titleresult = await bookListService(titleparams);
+    books_for_title.value = titleresult.data.items;
+
+    booktitle.value = [];
+    //赋值booktitle vue对象
+    for(let i=0;i<books_for_title.value.length;i++){
+        console.log(books_for_title.value[i].title);
+        const newtitle = {title: books_for_title.value[i].title}
+        booktitle.value.push(newtitle);
+    }
+    console.log(booktitle.value);
+
     BookLoading.value = false;
 }
 bookList();
@@ -153,6 +192,34 @@ const addBook = ()=> {
     bookList();
 }
 
+const results = ref([]);
+const querySearch = (queryString) => {
+    results.value = [];
+    // results.value.length = 0;
+    if(queryString){
+        for (let i = 0; i < booktitle.value.length; i++) {
+        if(booktitle.value[i].title.indexOf(queryString) === 0){
+            const item = {title: booktitle.value[i].title}
+            results.value.push(item);
+        }
+    }
+    }else{
+        results.value = booktitle.value;
+    }
+    
+    for (let i = 0; i < results.value.length; i++) {
+        results.value[i].value = results.value[i].title;
+    }
+    console.log("****************启用querySearch事件后的results****************");
+    console.log(results.value);
+    return results.value;
+}
+
+const handleSelect = (item) => {
+    console.log("****************启用handleSelect事件后的item****************");
+    console.log(item.value)
+}
+
 </script>
 
 <template>
@@ -164,8 +231,18 @@ const addBook = ()=> {
         </template>
         <!-- 搜索表单 -->
         <el-form inline>
+
+            <!-- 自动补全输入框 -->
             <el-form-item label="书名：">
-                <el-input name="title" placeholder="请输入title" v-model="title"></el-input>
+                <el-autocomplete
+                    name="title"
+                    v-model="title"
+                    :fetch-suggestions="querySearch"
+                    clearable
+                    class="inline-input w-50"
+                    placeholder="请输入title"
+                    @select="handleSelect"
+                />
             </el-form-item>
 
             <el-form-item label="isbn：">
@@ -178,6 +255,7 @@ const addBook = ()=> {
                 <el-button type="primary" @click="bookList">搜索</el-button>
                 <el-button @click="title = ''; isbn = '';author = '';bookList()">重置</el-button>
             </el-form-item>
+
         </el-form>
         <!-- 文章列表 -->
         <el-table v-loading="BookLoading" :data="books" style="width: 100%">
