@@ -240,6 +240,10 @@ const addBook = async ()=> {
 
     ElMessage.success(result.message ? result.message : '入库成功');
 
+    precheck.value = true;
+    newBook.value = false;
+    oldBook.value = false;
+
     bookList();
 }
 
