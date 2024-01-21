@@ -137,7 +137,7 @@ const qqq = ()=> {
 const disabledDate = (time) => {
     let today = new Date();
     let maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 10);
+    maxDate.setDate(maxDate.getDate() + 60);
     return time < today || time > maxDate;
 }
 
