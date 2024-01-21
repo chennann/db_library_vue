@@ -25,7 +25,7 @@ const title = ref('借阅');
 //分页条数据模型
 const pageNum = ref(1)//当前页
 const total = ref(20)//总条数
-const pageSize = ref(5)//每页条数
+const pageSize = ref(10)//每页条数
 //当每页条数发生了变化，调用此函数
 const onSizeChange = (size) => {
     pageSize.value = size;
@@ -338,7 +338,7 @@ const cancelBorrow = () => {
             <el-table-column label="操作" width="100">
                 <template #default="{ row }">
                     
-                    <el-button :icon="EditPen" plain type="primary" @click="dialogVisible = true, borrowModel.bookId = row.bookId"></el-button>
+                    <el-button :icon="EditPen" plain type="primary" @click="dialogVisible = true, borrowModel.bookId = row.bookId" :disabled="row.status !== '未借出'"></el-button>
                 </template>
             </el-table-column>
             <template #empty>
@@ -399,7 +399,7 @@ const cancelBorrow = () => {
                 <el-form-item label="bookId">
                     <el-input v-model="borrowModel.bookId" placeholder="请输入bookId" disabled="true"></el-input>
                 </el-form-item>
-                <el-form-item label="bookId">
+                <el-form-item label="还书日期">
                     <el-date-picker
                         v-model="date"
                         type="datetime"

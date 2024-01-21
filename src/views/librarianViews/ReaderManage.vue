@@ -22,7 +22,7 @@ const loading = ref(false)
 //分页条数据模型
 const pageNum = ref(1)//当前页
 const total = ref(20)//总条数
-const pageSize = ref(5)//每页条数
+const pageSize = ref(10)//每页条数
 //当每页条数发生了变化，调用此函数
 const onSizeChange = (size) => {
     pageSize.value = size;

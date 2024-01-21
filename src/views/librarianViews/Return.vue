@@ -38,7 +38,7 @@ const loading = ref(false)
 //分页条数据模型
 const pageNum = ref(1)//当前页
 const total = ref(20)//总条数
-const pageSize = ref(5)//每页条数
+const pageSize = ref(10)//每页条数
 //当每页条数发生了变化，调用此函数
 const onSizeChange = (size) => {
     pageSize.value = size;
@@ -67,6 +67,18 @@ const rId = ref('');
 const state = ref('1');
 
 const borrowList = async () => {
+    
+    let params1 = {
+        pageNum: 1,
+        pageSize: 100,
+    }
+
+    let result1 = await readerListService(params1);
+
+    // total.value = result1.data.total;
+    readers.value = result1.data.items;
+
+
     let params = {
         pageNum: pageNum.value,
         pageSize: pageSize.value,
@@ -166,7 +178,7 @@ const getFine = async(row) =>{
             <el-table-column label="还书时间" prop="returnTime"></el-table-column>
             <el-table-column label="操作" width="100">
                 <template #default="{ row }">
-                    <el-popover placement="right" :width="100" trigger="click">
+                    <el-popover placement="right" :width="200" trigger="click">
                         <template #reference>
                             <el-button :icon="Document" circle plain type="info" @click="getFine(row)"></el-button>
                         </template> 
