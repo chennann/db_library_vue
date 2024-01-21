@@ -8,6 +8,7 @@ import {
 import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { reservationListService, reservationCancelService, reservationAddService } from '@/api/reservation.js'
+import { bookListService} from '@/api/book.js';
 const rId = ref('');
 
 const visibleDrawer = ref(false);
@@ -169,6 +170,87 @@ const reserve = async (date) => {
 
     reservationList();
 }
+
+const books = ref([
+    {
+        "isbn": "ISBN7-301-02368-9",
+        "title": "111",
+        "author": "111",
+        "publisher": "chennn",
+        "publishdate": "2002-09-09 00:00:00",
+        "copies": 3,
+        "librarianNumber": "21120992"
+    }
+])
+
+const bookisbn = ref([
+    {
+        "isbn": '',
+    }
+])
+
+const books_for_isbn = ref([
+    {
+        "isbn": "ISBN7-301-02368-9",
+        "title": "111",
+        "author": "111",
+        "publisher": "chennn",
+        "publishdate": "2002-09-09 00:00:00",
+        "copies": 3,
+        "librarianNumber": "21120992"
+    }
+])
+
+const bookListforauto = async() => {
+    let isbnparams = {
+        pageNum: 1,
+        pageSize: 100,
+        title: null,
+        isbn: null,
+        author: null
+    }
+    let isbnresult = await bookListService(isbnparams);
+    books_for_isbn.value = isbnresult.data.items;
+
+    bookisbn.value = [];
+    //赋值booktitle vue对象
+    for(let i=0;i<books_for_isbn.value.length;i++){
+        console.log(books_for_isbn.value[i].isbn);
+        const newisbn = {isbn: books_for_isbn.value[i].isbn}
+        bookisbn.value.push(newisbn);
+    }
+    console.log(bookisbn.value);
+}
+bookListforauto();
+
+const results = ref([]);
+const querySearch = (queryString) => {
+    results.value = [];
+    // results.value.length = 0;
+    if(queryString){
+        for (let i = 0; i < bookisbn.value.length; i++) {
+        if(bookisbn.value[i].isbn.indexOf(queryString) === 0){
+            const item = {isbn: bookisbn.value[i].isbn}
+            results.value.push(item);
+        }
+    }
+    }else{
+        results.value = bookisbn.value;
+    }
+    
+    for (let i = 0; i < results.value.length; i++) {
+        results.value[i].value = results.value[i].isbn;
+    }
+    console.log("****************启用querySearch事件后的results****************");
+    console.log(results.value);
+    return results.value;
+}
+
+const handleSelect = (item) => {
+    console.log("****************启用handleSelect事件后的item****************");
+    console.log(item.value)
+}
+
 </script>
 
 <template>
@@ -214,15 +296,32 @@ const reserve = async (date) => {
             layout="jumper, total, sizes, prev, pager, next" background :total="total" @size-change="onSizeChange"
             @current-change="onCurrentChange" style="margin-top: 20px; justify-content: flex-end" />
 
+
         <el-drawer v-model="visibleDrawer" title="预约管理" direction="rtl" size="50%">
+
             <!-- 添加文章表单 -->
             <el-form :model="reservationModel" label-width="100px" :rules="rules">
                 <el-form-item label="readerId">
                     <el-input v-model="reservationModel.readerId" placeholder="请输入readerId"></el-input>
                 </el-form-item>
+                
+                <!-- 自动补全输入框 -->
                 <el-form-item label="isbn">
-                    <el-input v-model="reservationModel.isbn" placeholder="请输入isbn"></el-input>
+                    <el-autocomplete
+                        name="title"
+                        v-model="reservationModel.isbn"
+                        :fetch-suggestions="querySearch"
+                        clearable
+                        class="inline-input w-50"
+                        placeholder="请输入isbn"
+                        @select="handleSelect"
+                    />
                 </el-form-item>
+
+                <!-- <el-form-item label="isbn">
+                    <el-input v-model="reservationModel.isbn" placeholder="请输入isbn"></el-input>
+                </el-form-item> -->
+
                 <el-form-item label="预约到期时间">
                     <el-date-picker
                         v-model="date"
@@ -301,4 +400,5 @@ const reserve = async (date) => {
         min-height: 200px;
     }
 }
+
 </style>

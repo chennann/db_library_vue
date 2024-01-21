@@ -53,6 +53,44 @@ const title = ref('')
 const isbn = ref('')
 const author = ref('')
 
+const state1 = ref('')
+//创建书本书名的vue对象
+const booktitle = ref([
+    {
+        title,
+    }
+])
+
+const books_for_title = ref([
+    {
+        "isbn": "ISBN7-301-02368-9",
+        "title": "111",
+        "author": "111",
+        "publisher": "chennn",
+        "publishdate": "2002-09-09 00:00:00",
+        "copies": 3,
+        "librarianNumber": "21120992"
+    }
+])
+
+const bookpublisher = ref([
+    {
+        "publisher": '',
+    }
+])
+
+const books_for_publisher = ref([
+    {
+        "isbn": "ISBN7-301-02368-9",
+        "title": "111",
+        "author": "111",
+        "publisher": "chennn",
+        "publishdate": "2002-09-09 00:00:00",
+        "copies": 3,
+        "librarianNumber": "21120992"
+    }
+])
+
 const bookList = async() => {
     BookLoading.value = true;
     let params = {
@@ -67,6 +105,45 @@ const bookList = async() => {
 
     total.value = result.data.total;
     books.value = result.data.items;
+
+
+    let titleparams = {
+        pageNum: 1,
+        pageSize: 100,
+        title: null,
+        isbn: null,
+        author: null
+    }
+    let titleresult = await bookListService(titleparams);
+    books_for_title.value = titleresult.data.items;
+
+    booktitle.value = [];
+    //赋值booktitle vue对象
+    for(let i=0;i<books_for_title.value.length;i++){
+        console.log(books_for_title.value[i].title);
+        const newtitle = {title: books_for_title.value[i].title}
+        booktitle.value.push(newtitle);
+    }
+    console.log(booktitle.value);
+
+    let publisherparams = {
+        pageNum: 1,
+        pageSize: 100,
+        title: null,
+        isbn: null,
+    }
+    let publisherresult = await bookListService(publisherparams);
+    books_for_publisher.value = publisherresult.data.items;
+
+    bookpublisher.value = [];
+    //赋值bookpublisher vue对象
+    for(let i=0;i<books_for_publisher.value.length;i++){
+        console.log(books_for_publisher.value[i].publisher);
+        const newpublisher = {publisher: books_for_publisher.value[i].publisher}
+        bookpublisher.value.push(newpublisher);
+    }
+    console.log(bookpublisher.value);
+    //加载结束
     BookLoading.value = false;
 }
 bookList();
@@ -163,6 +240,10 @@ const addBook = async ()=> {
 
     ElMessage.success(result.message ? result.message : '入库成功');
 
+    precheck.value = true;
+    newBook.value = false;
+    oldBook.value = false;
+
     bookList();
 }
 
@@ -190,6 +271,74 @@ const uploadSuccess = (result) => {
     bookCopiesModel.value.bookCover = result.data;
     console.log(result.data);
 }
+
+
+const results = ref([]);
+const querySearch = (queryString) => {
+    results.value = [];
+    // results.value.length = 0;
+    if(queryString){
+        for (let i = 0; i < booktitle.value.length; i++) {
+        if(booktitle.value[i].title.indexOf(queryString) === 0){
+            const item = {title: booktitle.value[i].title}
+            results.value.push(item);
+        }
+    }
+    }else{
+        results.value = booktitle.value;
+    }
+    
+    for (let i = 0; i < results.value.length; i++) {
+        results.value[i].value = results.value[i].title;
+    }
+    console.log("****************启用querySearch事件后的results****************");
+    console.log(results.value);
+    return results.value;
+}
+
+const handleSelect = (item) => {
+    console.log("****************启用handleSelect事件后的item****************");
+    console.log(item.value)
+}
+
+const results_publisher = ref([]);
+const querySearch_publisher = (queryString) => {
+    // 使用 Set 过滤掉重复的 publisher
+    const uniquePublishers = Array.from(new Set(bookpublisher.value.map(item => item.publisher)));
+
+    // 生成新数组，只保留第一个 publisher 为每个唯一的元素
+    const filteredPublishers = uniquePublishers.map(publisher => ({ "publisher": publisher }));
+
+    // 更新 bookpublisher
+    bookpublisher.value = filteredPublishers;
+
+    results_publisher.value = [];
+    // results.value.length = 0;
+    if(queryString){
+        for (let i = 0; i < bookpublisher.value.length; i++) {
+        if(bookpublisher.value[i].publisher.indexOf(queryString) === 0){
+            const item = {publisher: bookpublisher.value[i].publisher}
+            results_publisher.value.push(item);
+        }
+    }
+    }else{
+        results_publisher.value = bookpublisher.value;
+    }
+    
+    for (let i = 0; i < results_publisher.value.length; i++) {
+        results_publisher.value[i].value = results_publisher.value[i].publisher;
+    }
+    console.log("****************启用querySearch事件后的results****************");
+    console.log(results_publisher.value);
+    return results_publisher.value;
+}
+
+const handleSelect_publisher = (item) => {
+    console.log("****************启用handleSelect事件后的item****************");
+    console.log(item.value)
+}
+
+
 </script>
 
 <template>
@@ -204,8 +353,17 @@ const uploadSuccess = (result) => {
         </template>
         <!-- 搜索表单 -->
         <el-form inline>
+            <!-- 自动补全输入框 -->
             <el-form-item label="书名：">
-                <el-input name="title" placeholder="请输入title" v-model="title"></el-input>
+                <el-autocomplete
+                    name="title"
+                    v-model="title"
+                    :fetch-suggestions="querySearch"
+                    clearable
+                    class="inline-input w-50"
+                    placeholder="请输入title"
+                    @select="handleSelect"
+                />
             </el-form-item>
 
             <el-form-item label="isbn：">
@@ -218,6 +376,7 @@ const uploadSuccess = (result) => {
                 <el-button type="primary" @click="bookList">搜索</el-button>
                 <el-button @click="title = ''; isbn = '';author = '';bookList()">重置</el-button>
             </el-form-item>
+
         </el-form>
         <!-- 文章列表 -->
         <el-table v-loading="BookLoading" :data="books" style="width: 100%">
@@ -261,9 +420,9 @@ const uploadSuccess = (result) => {
         <el-drawer v-model="visibleDrawer" title="入库管理" direction="rtl" size="50%">
             <div style="height: 130px">
                 <el-steps :active="step">
-                <el-step title="Step 1" />
-                <el-step title="Step 2" />
-                <el-step title="Step 3" />
+                <el-step title="预检查isbn" />
+                <el-step title="书本信息录入" />
+                <el-step title="完成" />
                 </el-steps>
             </div>
             <!-- <el-button type="primary" @click="step = step+1">+1</el-button>
@@ -274,7 +433,6 @@ const uploadSuccess = (result) => {
                     <el-input v-model="bookCopiesModel.isbn" placeholder="请输入isbn"></el-input>
                 </el-form-item>
                 <el-button type="primary" @click="addPrecheck">precheck</el-button>
-
             </el-form>
 
             <el-form :model="bookCopiesModel" v-if="oldBook">
@@ -290,6 +448,7 @@ const uploadSuccess = (result) => {
                 <el-form-item label="出版商">
                     <el-input v-model="bookCopiesModel.publisher" placeholder="请输入出版商" disabled="true"></el-input>
                 </el-form-item>
+
                 <el-form-item>
                     <el-upload 
                         ref="uploadRef"
@@ -322,6 +481,7 @@ const uploadSuccess = (result) => {
                     <el-button type="info" @click="bookCopiesModelClear(); visibleDrawer = false; precheck = true; oldBook = false; newBook = false;">取消</el-button>
                 </el-form-item>
             </el-form>
+
             <el-form :model="bookCopiesModel" v-if="newBook" label-width="100px" :rules="rules">
                 <el-form-item label="书名">
                     <el-input v-model="bookCopiesModel.title" placeholder="请输入书名"></el-input>
@@ -332,9 +492,23 @@ const uploadSuccess = (result) => {
                 <el-form-item label="作者">
                     <el-input v-model="bookCopiesModel.author" placeholder="请输入作者"></el-input>
                 </el-form-item>
-                <el-form-item label="出版商">
+                <!-- <el-form-item label="出版商">
                     <el-input v-model="bookCopiesModel.publisher" placeholder="请输入出版商"></el-input>
+                </el-form-item> -->
+
+                <!-- 自动补全输入框 -->
+                <el-form-item label="出版商">
+                    <el-autocomplete
+                        name="publisher"
+                        v-model="bookCopiesModel.publisher"
+                        :fetch-suggestions="querySearch_publisher"
+                        clearable
+                        class="inline-input w-50"
+                        placeholder="请输入出版商"
+                        @select="handleSelect_publisher"
+                    />
                 </el-form-item>
+
                 <el-form-item>
                     <el-upload 
                         ref="uploadRef"

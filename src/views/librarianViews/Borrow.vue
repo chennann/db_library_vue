@@ -20,6 +20,7 @@ const date = ref('');
 const day = ref('');
 const hour = ref('');
 const minute = ref('');
+const title = ref('借阅');
 
 //分页条数据模型
 const pageNum = ref(1)//当前页
@@ -47,6 +48,29 @@ const bookCopies = ref([
     }
 ])
 
+const title_and_bookId = ref([
+    {
+        "title": '',
+        "bookId": '',
+        "isbn": '',
+        "location": '',
+        "status": '',
+        "librarianNumber": ''
+    }
+])
+
+const borrowtitle = ref([
+    {
+        "title": '',
+    }
+])
+
+const borrowisbn = ref([
+    {
+        "isbn": '',
+    }
+])
+
 const bookCopiesList = async() => {
     let params = {
         pageNum: pageNum.value,
@@ -60,8 +84,42 @@ const bookCopiesList = async() => {
     total.value = result.data.total;
     bookCopies.value = result.data.items;
 
+    let b_params = {
+        pageNum: 1,
+        pageSize: 100,
+        bookName : null,
+        bookId : null
+    }
     
+    let b_result = await bookCopiesListService(b_params);
+    console.log("*************************************");
+    title_and_bookId.value = b_result.data.items;
+    console.log(title_and_bookId.value);
+    
+    //获取书本名字
+    borrowtitle.value = [];
+    for(let i=0;i<title_and_bookId.value.length;i++){
+        let flag = false;
+        for(let j=0;j<borrowtitle.value.length;j++){
+            if(title_and_bookId.value[i].title == borrowtitle.value[j].title){
+                flag = true;
+                break;
+            }
+        }
+        if(flag===false){
+            const newtitle = {title: title_and_bookId.value[i].title}
+            borrowtitle.value.push(newtitle);
+        }
+    }
+    //去重后的书名
+    console.log(borrowtitle.value);
+    
+
+    
+
+
 }
+
 bookCopiesList();
 
 const borrowModel = ref({
@@ -83,6 +141,44 @@ const disabledDate = (time) => {
     return time < today || time > maxDate;
 }
 
+import { readerListService } from '@/api/reader.js'
+const readers = ref([
+    {
+        "readerId": 5,
+        "name": "RRR",
+        "phone": "15921035666",
+        "email": "2662222222@qq.com"
+    }
+])
+
+const readersName = ref([
+    {
+        "name": '',
+    }
+])
+const rId = ref('');
+const rName = ref('');
+//分页条数据模型
+const readerList = async () => {
+    let params = {
+        pageNum: 1,
+        pageSize: 100,
+        readerId: rId.value ? rId.value : null,
+        name: rName.value ? rName.value : null
+    }
+    let result = await readerListService(params);
+    readers.value = result.data.items;
+    readersName.value = [];
+    for(let i=0;i<readers.value.length;i++){
+        const newname = {name: readers.value[i].name}
+        readersName.value.push(newname);
+    }
+}
+readerList();
+
+// 魔改borrow函数
+const hashName = ref();
+
 const borrow = async (date) => {
     const now = new Date();
     const due = new Date(date);
@@ -102,6 +198,14 @@ const borrow = async (date) => {
     borrowModel.value.hour = hours;
     borrowModel.value.minutes = minutes;
 
+    // 处理hashName的映射逻辑
+    for(let i=0;i<readers.value.length;i++){
+        if(hashName.value == readers.value[i].name){
+            borrowModel.value.readerId = readers.value[i].readerId;
+            break;
+        }
+    }
+
     let result = await borrowService(borrowModel.value);
 
     ElMessage.success(result.message ? result.message : '借阅成功');
@@ -118,6 +222,79 @@ const borrowModelClear = () => {
     borrowModel.value.readerId = '';
     borrowModel.value.bookId = '';
 }
+
+const results = ref([]);
+const querySearch = (queryString) => {
+    results.value = [];
+    if(queryString){
+        for (let i = 0; i < borrowtitle.value.length; i++) {
+        if(borrowtitle.value[i].title.indexOf(queryString) === 0){
+            const item = {title: borrowtitle.value[i].title}
+            results.value.push(item);
+        }
+    }
+    }else{
+        results.value = borrowtitle.value;
+    }
+    
+    for (let i = 0; i < results.value.length; i++) {
+        results.value[i].value = results.value[i].title;
+    }
+    console.log("****************启用querySearch事件后的results****************");
+    console.log(results.value);
+    return results.value;
+}
+
+const handleSelect = (item) => {
+    console.log("****************启用handleSelect事件后的item****************");
+    console.log(item.value)
+}
+
+// 为表格不同状态添加不同的样式
+const tableRowClassName = ({ row, rowIndex }) => {
+    if (row.status === "已借出") {
+        return "success-row"
+    }else if(row.status === "不外借"){
+        return "warning-row"
+    }else if(row.status === "已预约"){
+        return "reserve-row"
+    }
+    return ""
+}
+
+const results_R = ref([]);
+const querySearch_readersName = (queryString) => {
+    results_R.value = [];
+    if(queryString){
+        for (let i = 0; i < readersName.value.length; i++) {
+        if(readersName.value[i].name.indexOf(queryString) === 0){
+            const item = {name: readersName.value[i].title}
+            results_R.value.push(item);
+        }
+    }
+    }else{
+        results_R.value = readersName.value;
+    }
+    
+    for (let i = 0; i < results_R.value.length; i++) {
+        results_R.value[i].value = results_R.value[i].name;
+    }
+    console.log("****************启用querySearch事件后的results_R****************");
+    console.log(results_R.value);
+    return results_R.value;
+}
+
+const handleSelect_readersName = (item) => {
+    console.log("****************启用handleSelect事件后的item****************");
+    console.log(item.value);
+}
+
+
+const cancelBorrow = () => {
+    dialogVisible.value = false;
+    hashName.value = '';
+}
+
 </script>
 
 <template>
@@ -132,10 +309,18 @@ const borrowModelClear = () => {
         </template> -->
         <!-- 搜索表单 -->
         <el-form inline>
+            <!-- 自动补全输入框 -->
             <el-form-item label="bookName：">
-                <el-input name="bookName" placeholder="请输入bookName" v-model="bookName"></el-input>
+                <el-autocomplete
+                    name="bookName"
+                    v-model="bookName"
+                    :fetch-suggestions="querySearch"
+                    clearable
+                    class="inline-input w-50"
+                    placeholder="请输入title"
+                    @select="handleSelect"
+                />
             </el-form-item>
-
             <el-form-item label="bookId：">
                 <el-input name="bookId" placeholder="请输入bookId" v-model="bookId"></el-input>
             </el-form-item>
@@ -145,7 +330,7 @@ const borrowModelClear = () => {
             </el-form-item>
         </el-form>
         <!-- 文章列表 -->
-        <el-table :data="bookCopies" style="width: 100%">
+        <el-table :data="bookCopies" style="width: 100%" :row-class-name="tableRowClassName">
             <el-table-column label="序号" width="80" type="index"></el-table-column>
             <el-table-column label="书名" prop="title"></el-table-column>
             <el-table-column label="bookId" prop="bookId"> </el-table-column>
@@ -194,9 +379,23 @@ const borrowModelClear = () => {
 
         <el-dialog v-model="dialogVisible" :title="title" width="30%">
             <el-form :model="borrowModel" label-width="100px" :rules="rules">
-                <el-form-item label="readerId">
+                <!-- <el-form-item label="readerId">
                     <el-input v-model="borrowModel.readerId" placeholder="请输入readerId"></el-input>
+                </el-form-item> -->
+
+                <!-- 自动补全输入框 -->
+                <el-form-item label="UserName：">
+                    <el-autocomplete
+                        name="UserName"
+                        v-model="hashName"
+                        :fetch-suggestions="querySearch_readersName"
+                        clearable
+                        class="inline-input w-50"
+                        placeholder="请输入读者姓名"
+                        @select="handleSelect_readersName"
+                    />
                 </el-form-item>
+
                 <el-form-item label="bookId">
                     <el-input v-model="borrowModel.bookId" placeholder="请输入bookId" disabled="true"></el-input>
                 </el-form-item>
@@ -214,11 +413,25 @@ const borrowModelClear = () => {
             </el-form>
             <template #footer>
                 <span class="dialog-footer">
-                    <el-button @click="dialogVisible = false">取消</el-button>
+                    <el-button @click="cancelBorrow">取消</el-button>
                     <el-button type="primary" @click="borrow(date)"> 确认 </el-button>
                 </span>
             </template>
         </el-dialog>
+
+        <!-- <el-dialog v-model="dialogVisible" title="处理申诉" width="30%">
+            申诉理由
+            <el-row>
+                123
+            </el-row>
+            <el-row justify="center" style="margin-top: 20px;">
+                <el-image style="width: 300px; height: 300px" :src="bookId" :fit="fill" />
+            </el-row>
+            <el-row justify="center" style="margin-top: 20px;">
+                <el-button @click="dialogVisible = false" style="margin-right: 10px;">不同意</el-button>
+                <el-button type="primary" @click="agree">同意</el-button>
+            </el-row>
+        </el-dialog> -->
     </el-card>
 
 </template>
@@ -279,5 +492,19 @@ const borrowModelClear = () => {
     :deep(.ql-editor) {
         min-height: 200px;
     }
+}
+
+</style>
+
+<!-- 带状态表格的css样式 -->
+<style>
+.el-table .warning-row {
+  --el-table-tr-bg-color: var(--el-color-warning-light-9);
+}
+.el-table .success-row {
+  --el-table-tr-bg-color: var(--el-color-success-light-9);
+}
+.el-table .reserve-row {
+    background-color: #d3bfef;
 }
 </style>
