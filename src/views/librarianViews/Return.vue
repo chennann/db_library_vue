@@ -175,7 +175,9 @@ const getFine = async(row) =>{
             <el-table-column label="姓名" prop="readerName"></el-table-column>
             <el-table-column label="书本编号" prop="bookId"> </el-table-column>
             <el-table-column label="借书时间" prop="borrowTime"> </el-table-column>
+            <el-table-column label="到期时间" prop="dueTime"></el-table-column>
             <el-table-column label="还书时间" prop="returnTime"></el-table-column>
+
             <el-table-column label="操作" width="100">
                 <template #default="{ row }">
                     <el-popover placement="right" :width="200" trigger="click">
